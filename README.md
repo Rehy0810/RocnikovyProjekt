@@ -1,6 +1,8 @@
 # RocnikovyProjekt
 
 
+Automatic arduino pet feeder                                                                                                              Iustrční video(https://www.thingiverse.com/thing:27854/apps/print/)
+
 
 Rozvržení práce
 1. nakoupit díly a začít se stavbou
