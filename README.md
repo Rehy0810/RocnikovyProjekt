@@ -1,7 +1,8 @@
 # RocnikovyProjekt
 
 
-Automatic arduino pet feeder                                                                                                              Iustrční video(https://www.thingiverse.com/thing:27854/apps/print/)
+Automatic arduino pet feeder
+Iustrační video(https://www.thingiverse.com/thing:27854/apps/print/)
 
 
 Rozvržení práce
