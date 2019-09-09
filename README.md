@@ -2,7 +2,7 @@
 
 
 Automatic arduino pet feeder
-Iustrační video(https://www.thingiverse.com/thing:27854/apps/print/)
+Ilustrační video(https://www.thingiverse.com/thing:27854/apps/print/)
 
 
 Rozvržení práce
