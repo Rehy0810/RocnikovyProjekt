@@ -13,5 +13,10 @@ Rozvržení práce
 2. připojit k arduinu a začít se softwarem
 3. dokončení softwaru a celkově doladit projekt
 4. zkompletování dokumentace
+
+Schéma zapojení krokového motoru přes adaptér do ESP
+https://navody.arduino-shop.cz/navody-k-produktum/krokovy-motor-a-driver.html
+
 _______________________________________________________________________________________________________________________________
 Září-rozdělaná stavba boxu, modelování šnekového podavače v programu 3ds Max
+
