@@ -1,4 +1,5 @@
 Automatický dávkovač granulí pro psy řízený mikročipem ESP 8266
+
 Ilustrační video(https://www.thingiverse.com/thing:27854/apps/print/)
 
 Součásti projektu
@@ -13,6 +14,4 @@ Rozvržení práce
 3. dokončení softwaru a celkově doladit projekt
 4. zkompletování dokumentace
 _______________________________________________________________________________________________________________________________
-Září
-rozdělaná stavba boxu
-modelování šnekového podavače v programu 3ds Max
+Září-rozdělaná stavba boxu, modelování šnekového podavače v programu 3ds Max
