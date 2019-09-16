@@ -2,7 +2,14 @@
 
 
 Automatic arduino pet feeder
+
 Ilustrační video(https://www.thingiverse.com/thing:27854/apps/print/)
+
+Součásti projektu
+- https://arduino-shop.cz/arduino/1457-esp8266-esp-12e-ota-wemos-d1-ch340-wifi-arduino-ide-uno-r3.html?gclid=EAIaIQobChMI3buOzebF5AIVROh3Ch25xAU7EAQYBCABEgJTtPD_BwE
+- https://arduino-shop.cz/arduino/7317-lafvin-arduino-kit-elektro-soucastky-l003.html
+- šnekový podavač vymodelovaný v 3ds max a vytisknutý na 3d tiskárně
+-nádoba na granule
 
 
 Rozvržení práce
