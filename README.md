@@ -16,5 +16,6 @@ Rozvržení práce
 4. zkompletování dokumentace
 _______________________________________________________________________________________________________________________________
 
-Září --- rozdělaná stavba boxu
-     --- modelování šnekového podavače v programu 3ds Max
+Září
+rozdělaná stavba boxu
+modelování šnekového podavače v programu 3ds Max
