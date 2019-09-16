@@ -1,7 +1,4 @@
-# RocnikovyProjekt
-
-
-Automatic arduino pet feeder
+Automatický dávkovač granulí pro psy řízený mikročipem ESP 8266
 
 Ilustrační video(https://www.thingiverse.com/thing:27854/apps/print/)
 
