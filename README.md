@@ -26,14 +26,20 @@ Září-rozdělaná stavba boxu, modelování šnekového podavače v programu 3
 Zkušební kód pro krokový motor na pojený přes adaptér
 
 #include <Stepper.h>
+
 const int stepsPerRevolution = 200; 
+
 Stepper myStepper(stepsPerRevolution, 8, 9, 10, 11);
+
 int stepCount = 0;  
+
 void setup() {
 }
 void loop() {  
   int sensorReading = analogRead(A0);
+  
   int motorSpeed = map(sensorReading, 0, 1023, 0, 100);
+  
   if (motorSpeed > 0) {
     myStepper.setSpeed(motorSpeed);
     myStepper.step(stepsPerRevolution / 100);
@@ -49,19 +55,22 @@ void loop() {
 void setup()
 {
   Serial.begin(115200);
+  
   Serial.println();
 
   WiFi.begin("network-name", "pass-to-network");
 
   Serial.print("Connecting");
+  
   while (WiFi.status() != WL_CONNECTED)
   {
-    delay(500);
+    delay(500); 
     Serial.print(".");
   }
   Serial.println();
 
   Serial.print("Connected, IP address: ");
+  
   Serial.println(WiFi.localIP());
 }
 
