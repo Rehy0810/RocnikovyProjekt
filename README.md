@@ -1,4 +1,5 @@
 Automatický dávkovač granulí pro psy řízený mikročipem ESP 8266
+https://github.com/tyhenry/CheapStepper
 
 Ilustrační video(https://www.thingiverse.com/thing:27854/apps/print/)
 
