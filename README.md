@@ -1,3 +1,11 @@
+Zapojeni esp8266 s driverem ULN2003 a krokovým motorem
+
+musime si prevest digitalni piny
+pin 13 ---->  D7
+pin 3  ---->  D9
+pin 4  ---->  D4
+pin 6  ---->  D8
+
 Automatický dávkovač granulí pro psy řízený mikročipem ESP 8266
 https://github.com/tyhenry/CheapStepper
 
