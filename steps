@@ -1,0 +1,34 @@
+#include <Stepper.h>
+ 
+#define STEPS 2038
+ 
+Stepper stepper(STEPS, 5, 4, 2, 14);
+ 
+int previous = 0;
+int val;
+ 
+unsigned long currMillis;
+unsigned long prevMillis;
+const long interval = 10000;
+ 
+void setup() {
+  stepper.setSpeed(200);
+ 
+  // Na konec setupu ideálně
+  prevMillis = millis();
+}
+ 
+void loop() {
+  currMillis = millis();
+ 
+  if (currMillis - prevMillis >= interval) {
+    prevMillis = currMillis;
+ 
+    // KOD ZDE
+    val = analogRead(0);
+   
+    stepper.step(val - previous);
+   
+    previous = val;
+  }
+}
