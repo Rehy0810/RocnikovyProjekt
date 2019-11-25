@@ -1,34 +1,35 @@
 #include <NTPClient.h>
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
+#include <Stepper.h>
+#include <WiFiManager.h>
+#include <DNSServer.h>
+#include <ESP8266WebServer.h>
 
-const char *ssid     = "YOUR_SSID";
-const char *password = "YOUR_PASS";
 
+//const char *ssid     = "ESPNet";
+//const char *password = "";
+char hodiny[4]={
+  13, 12, 15, 18 
+  };
 const long utcOffsetInSeconds = 3600;
 
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 
-// Define NTP Client to get time
 WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
+NTPClient timeClient(ntpUDP, "192.168.1.1", utcOffsetInSeconds);
 
 void setup(){
-  Serial.begin(115200);
-
-  WiFi.begin(ssid, password);
-
-  while ( WiFi.status() != WL_CONNECTED ) {
-    delay ( 500 );
-    Serial.print ( "." );
-  }
-
+  Serial.begin(9600);
+   WiFiManager wifiManager;
+  wifiManager.autoConnect("ArduinoESP.");
+  Serial.println("connected...");
   timeClient.begin();
 }
 
 void loop() {
   timeClient.update();
-
+  
   Serial.print(daysOfTheWeek[timeClient.getDay()]);
   Serial.print(", ");
   Serial.print(timeClient.getHours());
@@ -36,7 +37,13 @@ void loop() {
   Serial.print(timeClient.getMinutes());
   Serial.print(":");
   Serial.println(timeClient.getSeconds());
-  //Serial.println(timeClient.getFormattedTime());
 
-  delay(1000);
+  for(int i=0;i<3;i++){
+  if(timeClient.getHours()==hodiny[i] && timeClient.getMinutes() == 55 && timeClient.getSeconds() == 01)
+    Serial.print("Rehy");
+  }
+}
+
+void otoceni(){
+  
 }
