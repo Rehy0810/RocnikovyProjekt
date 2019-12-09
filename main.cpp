@@ -13,14 +13,14 @@ Stepper myStepper(stepsPerRevolution, 5, 4, 2, 14);
 bool probiha=false;
 
 char hodiny[4]={
- 11, 12, 15, 18 
+ 11, 12, 21, 22 
   };
 const long utcOffsetInSeconds = 3600;
 
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 
 WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "192.168.1.1", utcOffsetInSeconds);
+NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 
 void setup(){
   Serial.begin(9600);
@@ -44,7 +44,7 @@ void loop() {
   Serial.println(timeClient.getSeconds());
   }
   for(int i=0;i<3;i++){
-  if((timeClient.getHours()==hodiny[i] && timeClient.getMinutes() == 03 && timeClient.getSeconds() <= 50) != probiha){
+  if((timeClient.getHours()==hodiny[i] && timeClient.getMinutes() == 10 && timeClient.getSeconds() <= 50) != probiha){
     Serial.print("Rehy");
     otoceni();
   }
