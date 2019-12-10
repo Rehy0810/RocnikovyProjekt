@@ -1,18 +1,24 @@
+#include <Arduino.h>
 #include <FS.h>                   //this needs to be first, or it all crashes and burns...
-
 #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
-
-//needed for library
 #include <DNSServer.h>
 #include <ESP8266WebServer.h>
 #include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
-
 #include <ArduinoJson.h>          //https://github.com/bblanchon/ArduinoJson
+#include <NTPClient.h>
+#include <WiFiUdp.h>
+#include <Stepper.h>
+
 
 //define your default values here, if there are different values in config.json, they are overwritten.
+//length should be max size + 1 
 char mqtt_server[40];
 char mqtt_port[6] = "8080";
-char blynk_token[34] = "YOUR_BLYNK_TOKEN";
+char blynk_token[33] = "YOUR_BLYNK_TOKEN";
+//default custom static IP
+char static_ip[16] = "0.0.0.0";
+char static_gw[16] = "0.0.0.0";
+char static_sn[16] = "0.0.0.0";
 
 //flag for saving data
 bool shouldSaveConfig = false;
@@ -23,6 +29,21 @@ void saveConfigCallback () {
   shouldSaveConfig = true;
 }
 
+const int stepsPerRevolution = 200;
+Stepper myStepper(stepsPerRevolution, 5, 4, 2, 14);
+
+
+bool probiha=false;
+
+char hodiny[4]={
+ 10, 11, 21, 22 
+  };
+const long utcOffsetInSeconds = 3600;
+
+char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "192.168.1.1", utcOffsetInSeconds);
 
 void setup() {
   // put your setup code here, to run once:
@@ -58,25 +79,42 @@ void setup() {
           strcpy(mqtt_port, json["mqtt_port"]);
           strcpy(blynk_token, json["blynk_token"]);
 
+          if(json["ip"]) {
+            Serial.println("setting custom ip from config");
+            //static_ip = json["ip"];
+            strcpy(static_ip, json["ip"]);
+            strcpy(static_gw, json["gateway"]);
+            strcpy(static_sn, json["subnet"]);
+            //strcat(static_ip, json["ip"]);
+            //static_gw = json["gateway"];
+            //static_sn = json["subnet"];
+            Serial.println(static_ip);
+/*            Serial.println("converting ip");
+            IPAddress ip = ipFromCharArray(static_ip);
+            Serial.println(ip);*/
+          } else {
+            Serial.println("no custom ip in config");
+          }
         } else {
           Serial.println("failed to load json config");
         }
-        configFile.close();
       }
     }
   } else {
     Serial.println("failed to mount FS");
   }
   //end read
-
+  Serial.println(static_ip);
+  Serial.println(blynk_token);
+  Serial.println(mqtt_server);
 
 
   // The extra parameters to be configured (can be either global or just in the setup)
   // After connecting, parameter.getValue() will get you the configured value
   // id/name placeholder/prompt default length
   WiFiManagerParameter custom_mqtt_server("server", "mqtt server", mqtt_server, 40);
-  WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 6);
-  WiFiManagerParameter custom_blynk_token("blynk", "blynk token", blynk_token, 32);
+  WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 5);
+  WiFiManagerParameter custom_blynk_token("blynk", "blynk token", blynk_token, 34);
 
   //WiFiManager
   //Local intialization. Once its business is done, there is no need to keep it around
@@ -86,7 +124,12 @@ void setup() {
   wifiManager.setSaveConfigCallback(saveConfigCallback);
 
   //set static ip
-  wifiManager.setSTAStaticIPConfig(IPAddress(10,0,1,99), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
+  IPAddress _ip,_gw,_sn;
+  _ip.fromString(static_ip);
+  _gw.fromString(static_gw);
+  _sn.fromString(static_sn);
+
+  wifiManager.setSTAStaticIPConfig(_ip, _gw, _sn);
   
   //add all your parameters here
   wifiManager.addParameter(&custom_mqtt_server);
@@ -98,7 +141,7 @@ void setup() {
 
   //set minimu quality of signal so it ignores AP's under that quality
   //defaults to 8%
-  //wifiManager.setMinimumSignalQuality();
+  wifiManager.setMinimumSignalQuality();
   
   //sets timeout until configuration portal gets turned off
   //useful to make it all retry or go to sleep
@@ -134,12 +177,16 @@ void setup() {
     json["mqtt_port"] = mqtt_port;
     json["blynk_token"] = blynk_token;
 
+    json["ip"] = WiFi.localIP().toString();
+    json["gateway"] = WiFi.gatewayIP().toString();
+    json["subnet"] = WiFi.subnetMask().toString();
+
     File configFile = SPIFFS.open("/config.json", "w");
     if (!configFile) {
       Serial.println("failed to open config file for writing");
     }
 
-    json.printTo(Serial);
+    json.prettyPrintTo(Serial);
     json.printTo(configFile);
     configFile.close();
     //end save
@@ -147,8 +194,41 @@ void setup() {
 
   Serial.println("local ip");
   Serial.println(WiFi.localIP());
+  Serial.println(WiFi.gatewayIP());
+  Serial.println(WiFi.subnetMask());
+
+  wifiManager.autoConnect("ArduinoESP.");
+  Serial.println("connected...");
+  timeClient.begin();
+  myStepper.setSpeed(60);
+
+}
+
+void otoceni(){
+ probiha=true;
+ Serial.print("sdfha");
+  Serial.println("clockwise");
+  myStepper.step(stepsPerRevolution);
+ probiha=false;
 
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  if(millis()%100 == 0){
+    timeClient.update();
+  Serial.print(daysOfTheWeek[timeClient.getDay()]);
+  Serial.print(", ");
+  Serial.print(timeClient.getHours());
+  Serial.print(":");
+  Serial.print(timeClient.getMinutes());
+  Serial.print(":");
+  Serial.println(timeClient.getSeconds());
+  }
+  for(int i=0;i<3;i++){
+  if((timeClient.getHours()==hodiny[i] && timeClient.getMinutes() == 05 && timeClient.getSeconds() <= 50) != probiha){
+    Serial.print("Rehy");
+    otoceni();
+  }
+    
+  }
+}
