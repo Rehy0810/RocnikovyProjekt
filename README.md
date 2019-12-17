@@ -29,3 +29,13 @@ https://navody.arduino-shop.cz/navody-k-produktum/krokovy-motor-a-driver.html
 
 _______________________________________________________________________________________________________________________________
 Září-rozdělaná stavba boxu, modelování šnekového podavače v programu 3ds Max
+
+
+
+https://tttapa.github.io/ESP8266/Chap10%20-%20Simple%20Web%20Server.html
+https://lastminuteengineers.com/creating-esp8266-web-server-arduino-ide/
+https://techtutorialsx.com/2016/10/15/esp8266-http-server-serving-html-javascript-and-css/
+https://randomnerdtutorials.com/esp32-web-server-spiffs-spi-flash-file-system/
+http://docs.platformio.org/en/latest/platforms/espressif8266.html#uploading-files-to-file-system-spiffs
+https://github.com/projetsdiy/ESP8266-Webserver-Tutorials/blob/master/Tuto1_DHT22WebserverESP8266_SPIFFS/Tuto1_DHT22WebserverESP8266_SPIFFS.ino
+https://randomnerdtutorials.com/esp32-esp8266-input-data-html-form/
