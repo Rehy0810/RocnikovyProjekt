@@ -9,16 +9,29 @@
 #include <WiFiUdp.h>
 #include <Stepper.h>
 
+/*const char *ssid     = "ESPNet";
+const char *password = "";*/
+const int stepsPerRevolution = 200;
+Stepper myStepper(stepsPerRevolution, 5, 4, 2, 14);
+bool probiha= false;
 
-//define your default values here, if there are different values in config.json, they are overwritten.
-//length should be max size + 1 
+char hodiny[4]={
+ 10, 11, 21, 22 
+  };
+
+const long utcOffsetInSeconds = 3600;
+
+char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+
+WiFiUDP ntpUDP;
+
 char mqtt_server[40];
 char mqtt_port[6] = "8080";
-char blynk_token[33] = "YOUR_BLYNK_TOKEN";
-//default custom static IP
+char blynk_token[33] = "192.168.1.1";
 char static_ip[16] = "0.0.0.0";
 char static_gw[16] = "0.0.0.0";
 char static_sn[16] = "0.0.0.0";
+NTPClient timeClient(ntpUDP, blynk_token, utcOffsetInSeconds);
 
 //flag for saving data
 bool shouldSaveConfig = false;
@@ -29,26 +42,10 @@ void saveConfigCallback () {
   shouldSaveConfig = true;
 }
 
-const int stepsPerRevolution = 200;
-Stepper myStepper(stepsPerRevolution, 5, 4, 2, 14);
-
-
-bool probiha=false;
-
-char hodiny[4]={
- 10, 11, 21, 22 
-  };
-const long utcOffsetInSeconds = 3600;
-
-char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
-
-WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "192.168.1.1", utcOffsetInSeconds);
-
 void setup() {
-  // put your setup code here, to run once:
   Serial.begin(115200);
   Serial.println();
+  myStepper.setSpeed(60);
 
   //clean FS, for testing
   //SPIFFS.format();
@@ -80,18 +77,11 @@ void setup() {
           strcpy(blynk_token, json["blynk_token"]);
 
           if(json["ip"]) {
-            Serial.println("setting custhttps://randomnerdtutorials.com/esp32-esp8266-input-data-html-form/om ip from config");
-            //static_ip = json["ip"];
+            Serial.println("setting custom ip from config");
             strcpy(static_ip, json["ip"]);
             strcpy(static_gw, json["gateway"]);
             strcpy(static_sn, json["subnet"]);
-            //strcat(static_ip, json["ip"]);
-            //static_gw = json["gateway"];
-            //static_sn = json["subnet"];
             Serial.println(static_ip);
-/*            Serial.println("converting ip");
-            IPAddress ip = ipFromCharArray(static_ip);
-            Serial.println(ip);*/
           } else {
             Serial.println("no custom ip in config");
           }
@@ -152,18 +142,15 @@ void setup() {
   //if it does not connect it starts an access point with the specified name
   //here  "AutoConnectAP"
   //and goes into a blocking loop awaiting configuration
-  if (!wifiManager.autoConnect("AutoConnectAP", "password")) {
+  if (!wifiManager.autoConnect("AutoConnectAP", "pass")) {
     Serial.println("failed to connect and hit timeout");
     delay(3000);
-    //reset and try again, or maybe put it to deep sleep
     ESP.reset();
     delay(5000);
   }
 
-  //if you get here you have connected to the WiFi
-  Serial.println("connected...yeey :)");
+  Serial.println("Connected... )");
 
-  //read updated parameters
   strcpy(mqtt_server, custom_mqtt_server.getValue());
   strcpy(mqtt_port, custom_mqtt_port.getValue());
   strcpy(blynk_token, custom_blynk_token.getValue());
@@ -196,26 +183,19 @@ void setup() {
   Serial.println(WiFi.localIP());
   Serial.println(WiFi.gatewayIP());
   Serial.println(WiFi.subnetMask());
-
-  wifiManager.autoConnect("ArduinoESP.");
-  Serial.println("connected...");
-  timeClient.begin();
-  myStepper.setSpeed(60);
-
 }
 
 void otoceni(){
- probiha=true;
+  probiha=true;
  Serial.print("sdfha");
   Serial.println("clockwise");
   myStepper.step(stepsPerRevolution);
  probiha=false;
-
 }
 
 void loop() {
   if(millis()%100 == 0){
-    timeClient.update();
+  timeClient.update();
   Serial.print(daysOfTheWeek[timeClient.getDay()]);
   Serial.print(", ");
   Serial.print(timeClient.getHours());
@@ -224,11 +204,11 @@ void loop() {
   Serial.print(":");
   Serial.println(timeClient.getSeconds());
   }
+
   for(int i=0;i<3;i++){
-  if((timeClient.getHours()==hodiny[i] && timeClient.getMinutes() == 31 && timeClient.getSeconds() <= 50) != probiha){
-    Serial.print("Rehy");
-    otoceni();
-  }
-    
+    if((timeClient.getHours()==hodiny[i] && timeClient.getMinutes() == 13 && timeClient.getSeconds() <= 50) != probiha){
+      Serial.print("Pokus");
+      otoceni();
+    }
   }
 }
