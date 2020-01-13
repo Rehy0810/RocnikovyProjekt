@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <FS.h>                   //this needs to be first, or it all crashes and burns...
+#include <FS.h>                   
 #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
 #include <DNSServer.h>
 #include <ESP8266WebServer.h>
@@ -9,8 +9,6 @@
 #include <WiFiUdp.h>
 #include <Stepper.h>
 
-/*const char *ssid     = "ESPNet";
-const char *password = "";*/
 const int stepsPerRevolution = 200;
 Stepper myStepper(stepsPerRevolution, 5, 4, 2, 14);
 bool probiha= false;
@@ -27,18 +25,15 @@ WiFiUDP ntpUDP;
 
 char mqtt_server[40];
 char mqtt_port[6] = "8080";
-char blynk_token[33] = "192.168.1.1";
+char ntp_server[33] = "";
 char static_ip[16] = "0.0.0.0";
 char static_gw[16] = "0.0.0.0";
 char static_sn[16] = "0.0.0.0";
-NTPClient timeClient(ntpUDP, blynk_token, utcOffsetInSeconds);
-
-//flag for saving data
+NTPClient timeClient(ntpUDP, ntp_server, utcOffsetInSeconds);
 bool shouldSaveConfig = false;
-
-//callback notifying us of the need to save config
+//Ukládání konfigurace
 void saveConfigCallback () {
-  Serial.println("Should save config");
+  Serial.println("Uložení konfigurace");
   shouldSaveConfig = true;
 }
 
@@ -46,23 +41,18 @@ void setup() {
   Serial.begin(115200);
   Serial.println();
   myStepper.setSpeed(60);
-
-  //clean FS, for testing
-  //SPIFFS.format();
-
-  //read configuration from FS json
-  Serial.println("mounting FS...");
+  //čtení konfigurace z FS json
+  Serial.println("konfigurace FS json...");
 
   if (SPIFFS.begin()) {
-    Serial.println("mounted file system");
+    Serial.println("Připojování konfiguračního souboru");
     if (SPIFFS.exists("/config.json")) {
-      //file exists, reading and loading
-      Serial.println("reading config file");
+      //soubor existuje, čtení a načítání
+      Serial.println("Načítání konfiguračního souboru");
       File configFile = SPIFFS.open("/config.json", "r");
       if (configFile) {
-        Serial.println("opened config file");
         size_t size = configFile.size();
-        // Allocate a buffer to store contents of the file.
+        // Alokace bufferu
         std::unique_ptr<char[]> buf(new char[size]);
 
         configFile.readBytes(buf.get(), size);
@@ -74,46 +64,44 @@ void setup() {
 
           strcpy(mqtt_server, json["mqtt_server"]);
           strcpy(mqtt_port, json["mqtt_port"]);
-          strcpy(blynk_token, json["blynk_token"]);
+          strcpy(ntp_server, json["ntp_server"]);
 
           if(json["ip"]) {
-            Serial.println("setting custom ip from config");
+            Serial.println("Nastavování ip adresy ze souboru config.json");
             strcpy(static_ip, json["ip"]);
             strcpy(static_gw, json["gateway"]);
             strcpy(static_sn, json["subnet"]);
             Serial.println(static_ip);
           } else {
-            Serial.println("no custom ip in config");
+            Serial.println("Nenalezená žádná ip adresa v config.json ");
           }
         } else {
-          Serial.println("failed to load json config");
+          Serial.println("Nepodařilo se načíst config.json");
         }
       }
     }
   } else {
-    Serial.println("failed to mount FS");
+    Serial.println("Nepodařilo se připojit ke config.json");
   }
-  //end read
+  
   Serial.println(static_ip);
-  Serial.println(blynk_token);
+  Serial.println(ntp_server);
   Serial.println(mqtt_server);
 
 
-  // The extra parameters to be configured (can be either global or just in the setup)
-  // After connecting, parameter.getValue() will get you the configured value
-  // id/name placeholder/prompt default length
-  WiFiManagerParameter custom_mqtt_server("server", "mqtt server", mqtt_server, 40);
-  WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 5);
-  WiFiManagerParameter custom_blynk_token("blynk", "blynk token", blynk_token, 34);
+  // Parametry navíc, které mají být nakonfigurovány
+  // Po připojení dostaneme parametr .getValue ()
+  WiFiManagerParameter custom_mqtt_server("server", "Zadejte adresu mqtt serveru", mqtt_server, 40);
+  WiFiManagerParameter custom_mqtt_port("port", "Zadejte mqtt port", mqtt_port, 5);
+  WiFiManagerParameter custom_ntp_server("ntp", "Zadejte adresu NTP serveru", ntp_server, 34);
 
   //WiFiManager
-  //Local intialization. Once its business is done, there is no need to keep it around
   WiFiManager wifiManager;
 
-  //set config save notify callback
+  //Uložení nastavení
   wifiManager.setSaveConfigCallback(saveConfigCallback);
 
-  //set static ip
+  //Nastavení statické ip adresy
   IPAddress _ip,_gw,_sn;
   _ip.fromString(static_ip);
   _gw.fromString(static_gw);
@@ -121,48 +109,37 @@ void setup() {
 
   wifiManager.setSTAStaticIPConfig(_ip, _gw, _sn);
   
-  //add all your parameters here
+  //Přidání parametrů sítě
   wifiManager.addParameter(&custom_mqtt_server);
   wifiManager.addParameter(&custom_mqtt_port);
-  wifiManager.addParameter(&custom_blynk_token);
+  wifiManager.addParameter(&custom_ntp_server);
 
-  //reset settings - for testing
-  //wifiManager.resetSettings();
-
-  //set minimu quality of signal so it ignores AP's under that quality
-  //defaults to 8%
+  wifiManager.resetSettings();
   wifiManager.setMinimumSignalQuality();
   
-  //sets timeout until configuration portal gets turned off
-  //useful to make it all retry or go to sleep
-  //in seconds
-  //wifiManager.setTimeout(120);
+  wifiManager.setTimeout(120);
 
-  //fetches ssid and pass and tries to connect
-  //if it does not connect it starts an access point with the specified name
-  //here  "AutoConnectAP"
-  //and goes into a blocking loop awaiting configuration
+  //Nastavení automatického připojení k síti
   if (!wifiManager.autoConnect("AutoConnectAP", "pass")) {
-    Serial.println("failed to connect and hit timeout");
+    Serial.println("Připojení se nezdařilo");
     delay(3000);
     ESP.reset();
     delay(5000);
   }
 
-  Serial.println("Connected... )");
+  Serial.println("Připojeno... )");
 
   strcpy(mqtt_server, custom_mqtt_server.getValue());
   strcpy(mqtt_port, custom_mqtt_port.getValue());
-  strcpy(blynk_token, custom_blynk_token.getValue());
+  strcpy(ntp_server, custom_ntp_server.getValue());
 
-  //save the custom parameters to FS
   if (shouldSaveConfig) {
-    Serial.println("saving config");
+    Serial.println("Ukládání nastavení");
     DynamicJsonBuffer jsonBuffer;
     JsonObject& json = jsonBuffer.createObject();
     json["mqtt_server"] = mqtt_server;
     json["mqtt_port"] = mqtt_port;
-    json["blynk_token"] = blynk_token;
+    json["ntp_server"] = ntp_server;
 
     json["ip"] = WiFi.localIP().toString();
     json["gateway"] = WiFi.gatewayIP().toString();
@@ -170,7 +147,7 @@ void setup() {
 
     File configFile = SPIFFS.open("/config.json", "w");
     if (!configFile) {
-      Serial.println("failed to open config file for writing");
+      Serial.println("...");
     }
 
     json.prettyPrintTo(Serial);
@@ -179,7 +156,7 @@ void setup() {
     //end save
   }
 
-  Serial.println("local ip");
+  Serial.println("Lokální ip adresa");
   Serial.println(WiFi.localIP());
   Serial.println(WiFi.gatewayIP());
   Serial.println(WiFi.subnetMask());
@@ -187,8 +164,8 @@ void setup() {
 
 void otoceni(){
   probiha=true;
- Serial.print("sdfha");
-  Serial.println("clockwise");
+ Serial.print("start");
+  Serial.println("Otáčení");
   myStepper.step(stepsPerRevolution);
  probiha=false;
 }
