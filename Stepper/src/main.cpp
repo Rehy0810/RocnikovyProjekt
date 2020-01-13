@@ -153,7 +153,6 @@ void setup() {
     json.prettyPrintTo(Serial);
     json.printTo(configFile);
     configFile.close();
-    //end save
   }
 
   Serial.println("Lokální ip adresa");
